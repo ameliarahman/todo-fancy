@@ -143,7 +143,7 @@ Vue.component('add-todo', {
             <div class="modal-content">
                 <div class="modal-header text-center">
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title text-center">Add Buku</h4>
+                    <h4 class="modal-title text-center">Add Todo</h4>
                 </div>
 
                 <div class="modal-body">
