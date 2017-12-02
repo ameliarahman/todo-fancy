@@ -1,16 +1,25 @@
 const Todo = require('../models/todoModel')
+const User = require('../models/userModel')
 
 const createTodo = (req, res) => {
-    Todo.create({
-        task: req.body.task,
-        status: req.body.status,
-        tags: req.body.tags
+    User.findOne({
+        username: req.body.username
     })
-        .then(() => {
-            res.status(200).send("1 data successfully inserted!")
+        .then((dataUser) => {
+            let task = new Todo({
+                task: req.body.task,
+                status: false,
+                tags: req.body.tags
+            })
+            task.save(function (err) {
+                dataUser.task.push(task)
+                dataUser.save(function () {
+                    res.send("Successfully added 1 task!")
+                })
+            })
         })
         .catch((reason) => {
-            res.status(500).send(reason)
+            console.log(reason)
         })
 }
 
@@ -64,10 +73,27 @@ const deleteDataTodo = (req, res) => {
 }
 
 
+const changeStatusDone = (req, res) => {
+    Todo.findById(req.params.id)
+        .then((dataTodo) => {
+            dataTodo.task = dataTodo.task
+            dataTodo.tags = dataTodo.tags
+            dataTodo.status = true
+
+            dataTodo.save(function () {
+                res.send("Status changed!")
+            })
+        })
+        .catch((reason) => {
+            res.status(500).send(reason)
+        })
+}
+
 module.exports = {
     createTodo,
     getAllTodos,
     findTodoById,
     updateTodo,
-    deleteDataTodo
+    deleteDataTodo,
+    changeStatusDone
 }

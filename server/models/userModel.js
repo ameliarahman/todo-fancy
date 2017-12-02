@@ -12,10 +12,11 @@ const userSchema = new Schema({
             message: 'Email format is invalid!'
         }
     },
-    phone: {
+    username: {
         type: String,
-        minlength: [11, 'Phone number should be no less than 11 digits']
+        unique: true
     },
+    password: String,
     task: [{
         type: Schema.Types.ObjectId,
         ref: 'todos'

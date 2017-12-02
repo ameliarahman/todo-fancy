@@ -1,23 +1,70 @@
+require('dotenv').config()
+const FB = require('fb');
 const User = require('../models/userModel')
+const Decrypt = require('../helpers/decrypt')
+const Encrypt = require('../helpers/encrypt')
+const jwt = require('jsonwebtoken')
+
 
 const createUser = (req, res) => {
-    User.create({
-        name: req.body.name,
-        email: req.body.email,
-        phone: req.body.phone,
-        task: req.body.task
+    Encrypt(req.body.password).then((newPassword) => {
+        User.create({
+            name: req.body.name,
+            email: req.body.email,
+            username: req.body.username,
+            password: newPassword
+        })
+            .then(() => {
+                res.status(200).send("1 data successfully inserted!")
+            })
+            .catch((reason) => {
+                res.status(500).send(reason)
+            })
     })
-        .then(() => {
-            res.status(200).send("1 data successfully inserted!")
-        })
-        .catch((reason) => {
-            res.status(500).send(reason)
-        })
+
 }
 
 const getAllDataUsers = (req, res) => {
-    User.find()
-        .populate('task')
+    User.find({
+        username: req.params.name,
+    })
+        .populate({
+            path: 'task',
+            match: { status: false }
+        })
+        .exec((err, dataUsers) => {
+            if (err) {
+                res.status(500).send(err)
+            } else {
+                res.status(200).send(dataUsers)
+            }
+        })
+}
+
+const getAllDataTodos = (req, res) => {
+    User.find({
+        username: req.params.name,
+    })
+        .populate({
+            path: 'task'
+        })
+        .exec((err, dataUsers) => {
+            if (err) {
+                res.status(500).send(err)
+            } else {
+                res.status(200).send(dataUsers)
+            }
+        })
+}
+
+const getAllFinishedTask = (req, res) => {
+    User.find({
+        username: req.params.name,
+    })
+        .populate({
+            path: 'task',
+            match: { status: true }
+        })
         .exec((err, dataUsers) => {
             if (err) {
                 res.status(500).send(err)
@@ -43,9 +90,10 @@ const updateDataUser = (req, res) => {
     User.findById(req.params.id)
         .populate('task')
         .exec((err, dataUser) => {
+
             dataUser.name = req.body.name
             dataUser.email = req.body.email
-            dataUser.phone = req.body.phone
+            dataUser.username = req.body.username
 
             dataUser.save()
                 .then((dataUser) => {
@@ -80,6 +128,88 @@ const getTasksByUserId = (req, res) => {
         })
 }
 
+const userSignin = (req, res) => {
+    User.findOne({
+        username: req.body.username
+    }).then((dataUser) => {
+        if (!dataUser) {
+            res.status(401).json({
+                message: "Authentication failed. User not found"
+            })
+        } else {
+            Decrypt(req.body.password, dataUser.password)
+                .then((hasil) => {
+                    if (!hasil) {
+                        res.status(401).json({
+                            message: "Authentication failed. Password is incorrect"
+                        })
+                    } else {
+                        const payload = {
+                            _id: dataUser._id,
+                            username: dataUser.username,
+                            email: dataUser.email,
+                            isLogin: true
+                        }
+                        jwt.sign(payload, process.env.SECRET, function (err, token) {
+                            if (err) {
+                                throw err
+                            } else {
+                                res.send({
+                                    message: "Login berhasil",
+                                    token: token,
+                                    data: payload
+                                })
+                            }
+                        })
+                    }
+                })
+                .catch((reason) => {
+                    res.send(reason)
+                })
+        }
+    }).catch((reason) => {
+        res.send(reason)
+    })
+}
+
+const signinFb = (req, res) => {
+    FB.setAccessToken(req.body.accessToken);
+    FB.api(req.body.userID, { fields: ["id", "name", "email", "picture"] }, (response) => {
+        User.findOne({
+            email: response.email
+        })
+            .then((dataUser) => {
+                if (dataUser) {
+                    jwt.sign(dataUser, process.env.SECRET, function (err, token) {
+                        if (err) {
+                            throw err
+                        } else {
+                            res.send({
+                                message: "Login berhasil",
+                                token: token,
+                                data: dataUser
+                            })
+                        }
+                    })
+                } else {
+                    Encrypt(response.name).then((newPass) => {
+                        User.create({
+                            username: response.name,
+                            email: response.email,
+                            password: newPass
+                        }).then((dataUser) => {
+                            res.status(200).send({
+                                msg: "Successfuly inserted",
+                                data: dataUser
+                            })
+                        }).catch((reason) => {
+                            res.status(500).send(reason)
+                        })
+                    })
+                }
+            })
+    })
+}
 
 module.exports = {
     createUser,
@@ -87,5 +217,9 @@ module.exports = {
     findDataUserById,
     updateDataUser,
     deleteDataUser,
-    getTasksByUserId
+    getTasksByUserId,
+    userSignin,
+    signinFb,
+    getAllDataTodos,
+    getAllFinishedTask
 }
