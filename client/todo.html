@@ -17,9 +17,9 @@
 <body>
   <div id="app">
     <div class="wrapper">
-      
+
       <div class="container-fluid text-center">
-          <button class="btn btn-lg btn-basic" type="submit" @click="logout">Logout</button>
+        <button class="btn btn-lg btn-basic" type="submit" @click="logout">Logout</button>
         <div class="row content">
 
           <todo></todo>
@@ -34,11 +34,11 @@
 
           <div class="col-sm-8 text-left">
             <hr>
-            <list-todo v-show="alltasks.length < 1" :tasks="tasks"></list-todo>
+            <list-todo v-show="alltasks.length < 1" :tasks="tasks" @edit-task="getDataEditTask"></list-todo>
             <finish-alltodo v-show="alltasks.length > 0" :alltasks="alltasks"></finish-alltodo>
           </div>
           <add-todo></add-todo>
-
+          <edit-todo :task="task"></edit-todo>
         </div>
       </div>
     </div>

@@ -213,7 +213,7 @@ Vue.component('list-todo', {
             <a href="#" class="btn btn-info" role="button" @click="changeStatus(detail._id)">Done</a>
         </td>
         <td>
-            <a href="#" class="btn btn-primary" role="button">Edit</a>
+            <a href="#" data-toggle="modal" data-target="#edit-task" class="btn btn-primary" role="button" @click="editTask(index)">Edit</a>
         </td>
         <td>
             <a href="#" class="btn btn-danger" role="button" @click="deleteTask(detail._id)">Delete</a>
@@ -247,9 +247,66 @@ Vue.component('list-todo', {
                 }).catch((reason) => {
                     console.log(reason)
                 })
+        },
+        editTask(index) {
+            this.$emit('edit-task', index)
         }
     }
 
+})
+
+Vue.component('edit-todo', {
+    props: ['task'],
+    template:
+    `<div class="modal fade" id="edit-task" role="dialog"> 
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header text-center">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-center">Edit Todo</h4>
+                </div>
+
+                <div class="modal-body">
+                    <form class="form-horizontal">
+
+                        <div class="form-group">
+                            <label class="control-label col-sm-2" for="task">Task:</label>
+                                <div class="col-sm-8">
+                                    <input type="text" :value="task.task"   class="form-control" placeholder="Enter title" id="newTask">
+                                </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="control-label col-sm-2" for="tags">Tags :</label>
+                                <div class="col-sm-8">
+                                    <input type="text" :value="task.tags" class="form-control"  placeholder="Enter tags" id="newTags"">
+                                </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-sm-offset-2 col-sm-8">
+                                <button type="submit" class="btn btn-default" @click="editTodo(task._id)" >Submit</button>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>`,
+    methods: {
+        editTodo(id) {
+            axios.put(`http://localhost:3000/api/todos/${id}`, {
+                task: document.getElementById("newTask").value,
+                tags: document.getElementById("newTags").value
+            }).then((dataUser) => {
+                alert("Successfully updated")
+                location.reload()
+            }).catch((reason) => {
+                console.log(reason)
+            })
+        }
+    }
 })
 
 Vue.component('finish-alltodo', {
@@ -300,6 +357,7 @@ new Vue({
         title: "Todo List",
         tasks: [],
         alltasks: [],
+        task: []
     },
     methods: {
         getDataTodo() {
@@ -310,6 +368,9 @@ new Vue({
                 .catch((reason) => {
                     console.log(reason)
                 })
+        },
+        getDataEditTask(index) {
+            this.task = this.tasks[0].task[index]
         },
         getFinishedTask() {
             axios.get('http://localhost:3000/api/users/amel/todos/finish')

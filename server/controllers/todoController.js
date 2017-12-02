@@ -47,11 +47,10 @@ const updateTodo = (req, res) => {
     Todo.findById(req.params.id)
         .then((dataTodo) => {
             //console.log(req.body)
-            dataTodo.status = req.body.status
+            dataTodo.status = dataTodo.status
             dataTodo.task = req.body.task
-            req.body.tags.forEach((tag) => {
-                dataTodo.tags.push(tag)
-            });
+            dataTodo.tags = req.body.tags
+
             dataTodo.save()
                 .then((dataTodo) => {
                     res.status(200).send(dataTodo)
