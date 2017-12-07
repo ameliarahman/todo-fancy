@@ -150,7 +150,7 @@ const userSignin = (req, res) => {
                             email: dataUser.email,
                             isLogin: true
                         }
-                        jwt.sign(payload, process.env.SECRET, function (err, token) {
+                        jwt.sign(payload,"0idowekcsnvewf38hubUIBBEJKCwjd", function (err, token) {
                             if (err) {
                                 throw err
                             } else {
@@ -174,11 +174,12 @@ const userSignin = (req, res) => {
 
 const signinFb = (req, res) => {
     FB.setAccessToken(req.body.accessToken);
-    FB.api(req.body.userID, { fields: ["id", "name", "email", "picture"] }, (response) => {
+    FB.api(req.body.userID, { fields: ["id", "name", "email"] }, (response) => {
         User.findOne({
             email: response.email
         })
             .then((dataUser) => {
+                console.log(dataUser)
                 if (dataUser) {
                     jwt.sign(dataUser, process.env.SECRET, function (err, token) {
                         if (err) {

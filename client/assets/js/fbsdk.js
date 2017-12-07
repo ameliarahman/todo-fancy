@@ -1,17 +1,15 @@
 function fblogin() {
   FB.login(function (response) {
-    console.log(response);
     axios.post('http://localhost:3000/api/users/signinfb', {
       accessToken: response.authResponse.accessToken,
       userID: response.authResponse.userID
     })
-      .then((response) => {
-        console.log(response)
-
+      .then((dataUser) => {
+       console.log(dataUser)
       })
-    // .catch((error) => {
-    //   console.log(error);
-    // });
+    .catch((reason) => {
+      console.log(reason);
+    });
   }, { scope: "email" });
 }
 
@@ -27,7 +25,6 @@ function checkLoginState() {
   });
 }
 
-// First Initialize
 window.fbAsyncInit = function () {
   FB.init({
     appId: '302040460283594',

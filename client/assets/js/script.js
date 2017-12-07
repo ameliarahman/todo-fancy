@@ -42,7 +42,7 @@ Vue.component('component-register', {
                      
                     <div class="form-group text-center">
                         <div class="col-sm-offset-2 col-sm-8">
-                              <button type="submit" class="btn btn-default" @click=signUp>Submit</button>
+                              <button type="button" class="btn btn-default" @click=signUp data-dismiss="modal">Submit</button>
                         </div>
                     </div>
 
@@ -84,12 +84,11 @@ Vue.component('login', {
     template: `
     <form class="form-signin text-center">
     <div>
-    <input type="text" class="form-control" v-model="username" placeholder="username" required="" autofocus="" />
-    <input type="password" class="form-control" v-model="password" placeholder="Password" required="" />
-    <button class="btn btn-lg btn-primary btn-block" type="submit" @click="login">Login</button>
+        <input type="text" class="form-control" v-model="username" placeholder="username" required="" autofocus="" />
+        <input type="password" class="form-control" v-model="password" placeholder="Password" required="" />
+        <button class="btn btn-lg btn-primary btn-block" type="button" @click="login">Login</button>
     </div>
-</form>
-   
+    </form>
             `,
     data: function () {
         return {
@@ -99,15 +98,11 @@ Vue.component('login', {
     },
     methods: {
         login: function () {
-
             axios.post('http://localhost:3000/api/users/signin', {
                 username: this.username,
                 password: this.password
             }).then((dataUser) => {
-                // setTimeout(10000)
-                // alert("haiiiii")
                 localStorage.setItem('username', dataUser.data.data.username)
-                localStorage.setItem('login', dataUser.data.data.isLogin)
                 localStorage.setItem('token', dataUser.data.token)
                 window.location.replace('todo.html')
             }).catch((reason) => {
@@ -165,7 +160,7 @@ Vue.component('add-todo', {
 
                         <div class="form-group">
                             <div class="col-sm-offset-2 col-sm-8">
-                                <button type="submit" class="btn btn-default" @click = "addTask" >Submit</button>
+                                <button type="button" class="btn btn-default" @click = "addTask" >Submit</button>
                             </div>
                         </div>
 
@@ -178,8 +173,7 @@ Vue.component('add-todo', {
         addTask: function () {
             let arrTag = this.tags.split(",")
             axios.post('http://localhost:3000/api/todos', {
-                // Ini nanti diganti ya Mel //
-                username: "amel",
+                username: localStorage.getItem('username'),
                 task: this.task,
                 tags: this.tags
             }).then((response) => {
@@ -210,13 +204,13 @@ Vue.component('list-todo', {
           {{detail.task}}
         </td>
         <td>
-            <a href="#" class="btn btn-info" role="button" @click="changeStatus(detail._id)">Done</a>
+            <a class="btn btn-info" role="button" @click="changeStatus(detail._id)">Done</a>
         </td>
         <td>
-            <a href="#" data-toggle="modal" data-target="#edit-task" class="btn btn-primary" role="button" @click="editTask(index)">Edit</a>
+            <a data-toggle="modal" data-target="#edit-task" class="btn btn-primary" role="button" @click="editTask(index)">Edit</a>
         </td>
         <td>
-            <a href="#" class="btn btn-danger" role="button" @click="deleteTask(detail._id)">Delete</a>
+            <a class="btn btn-danger" role="button" @click="deleteTask(detail._id)">Delete</a>
         </td>
       </tr>
     </tbody>
@@ -232,14 +226,10 @@ Vue.component('list-todo', {
                 })
         },
         deleteTask(id) {
-            // console.log(this.tasks[0])
-            let indexTask = this.tasks[0].task.findIndex(element => {
-                if (element._id == id) {
-                    return this.tasks[0].task.indexOf(element)
-
-                }
-            })
-
+            let indexTask = this.tasks[0].task.findIndex(element =>
+                element._id == id
+            )
+            console.log(indexTask)
             this.tasks[0].task.splice(indexTask, 1)
             axios.delete(`http://localhost:3000/api/todos/${id}`)
                 .then((response) => {
@@ -272,20 +262,20 @@ Vue.component('edit-todo', {
                         <div class="form-group">
                             <label class="control-label col-sm-2" for="task">Task:</label>
                                 <div class="col-sm-8">
-                                    <input type="text" :value="task.task"   class="form-control" placeholder="Enter title" id="newTask">
+                                    <input type="text" v-model="task.task"   class="form-control" placeholder="Enter title" id="newTask">
                                 </div>
                         </div>
 
                         <div class="form-group">
                             <label class="control-label col-sm-2" for="tags">Tags :</label>
                                 <div class="col-sm-8">
-                                    <input type="text" :value="task.tags" class="form-control"  placeholder="Enter tags" id="newTags"">
+                                    <input type="text" v-model="task.tags" class="form-control"  placeholder="Enter tags" id="newTags"">
                                 </div>
                         </div>
 
                         <div class="form-group">
                             <div class="col-sm-offset-2 col-sm-8">
-                                <button type="submit" class="btn btn-default" @click="editTodo(task._id)" >Submit</button>
+                                <button type="button" class="btn btn-default" @click="editTodo(task._id)" data-dismiss="modal" >Submit</button>
                             </div>
                         </div>
 
@@ -297,11 +287,10 @@ Vue.component('edit-todo', {
     methods: {
         editTodo(id) {
             axios.put(`http://localhost:3000/api/todos/${id}`, {
-                task: document.getElementById("newTask").value,
-                tags: document.getElementById("newTags").value
+                task: this.task.task,
+                tags: this.task.tags
             }).then((dataUser) => {
                 alert("Successfully updated")
-                location.reload()
             }).catch((reason) => {
                 console.log(reason)
             })
@@ -333,13 +322,8 @@ Vue.component('finish-alltodo', {
 `,
     methods: {
         deleteTask(id) {
-            // console.log(this.tasks[0])
-            let indexTask = this.alltasks[0].task.findIndex(element => {
-                if (element._id == id) {
-                    return this.alltasks[0].task.indexOf(element)
-
-                }
-            })
+            let indexTask = this.alltasks[0].task.findIndex(element =>
+                element._id == id)
 
             this.alltasks[0].task.splice(indexTask, 1)
             axios.delete(`http://localhost:3000/api/todos/${id}`)
@@ -357,11 +341,12 @@ new Vue({
         title: "Todo List",
         tasks: [],
         alltasks: [],
-        task: []
+        task: [],
+        username: localStorage.getItem('username')
     },
     methods: {
         getDataTodo() {
-            axios.get('http://localhost:3000/api/users/amel')
+            axios.get(`http://localhost:3000/api/users/${this.username}`)
                 .then((dataUser) => {
                     this.tasks = dataUser.data
                 })
@@ -373,7 +358,7 @@ new Vue({
             this.task = this.tasks[0].task[index]
         },
         getFinishedTask() {
-            axios.get('http://localhost:3000/api/users/amel/todos/finish')
+            axios.get(`http://localhost:3000/api/users/${this.username}/todos/finish`)
                 .then((dataUser) => {
                     this.alltasks = dataUser.data
 
@@ -383,13 +368,13 @@ new Vue({
                 })
         },
         logout() {
-            // localStorage.removeItem("token")
+            localStorage.removeItem('token')
+            localStorage.removeItem('username')
             window.location.replace('index.html')
         }
     },
     mounted() {
         this.getDataTodo()
         this.alltasks = []
-        // this.getAllDataTodo()
     }
 })
